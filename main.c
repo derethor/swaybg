@@ -8,6 +8,14 @@
 #include <string.h>
 #include <strings.h>
 #include <wayland-client.h>
+
+# include <errno.h>
+# include <stdio.h>
+# include <unistd.h>
+# include <memory.h>
+# include <sys/epoll.h>
+# include <sys/timerfd.h>
+
 #include "background-image.h"
 #include "cairo.h"
 #include "log.h"
@@ -496,6 +504,145 @@ static void parse_command_line(int argc, char **argv,
 	}
 }
 
+///////////////////////////////////////////
+
+static void timer_cb(int tfd , int revents , struct swaybg_state * state )
+{
+  uint64_t count = 0;
+  ssize_t err = 0;
+
+  err = read(tfd, &count, sizeof(uint64_t));
+  if(err != sizeof(uint64_t)) return;
+
+  //do timeout
+  if (!state) return;
+  struct swaybg_output *output = NULL;
+  struct swaybg_output *tmp_output = NULL;
+  wl_list_for_each_safe(output, tmp_output, &(state->outputs), link)
+  {
+    if (output && output->config && output->config->color)
+    {
+      output->config->color = (output->config->color) + 0x1100;
+      swaybg_log ( LOG_ERROR , "color %x\n" , output->config->color );
+      swaybg_log ( LOG_ERROR , "name %s\n" , output->name );
+      render_frame(output);
+    }
+  }
+}
+
+static int timer_set ( int tfd , long ms )
+{
+  struct itimerspec its;
+
+  its.it_interval.tv_sec =  ms / 1000;
+  its.it_interval.tv_nsec = 0;
+
+  its.it_value.tv_sec = ms / 1000;
+  its.it_value.tv_nsec = 0;
+
+  return timerfd_settime(tfd, /*flags=*/0, &its, NULL);
+}
+
+static int timer_init (int epfd , int * tfd )
+{
+  if (!tfd) return -1;
+
+  *tfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+  if(*tfd == -1) return -1;
+
+  struct epoll_event ev;
+  memset (&ev , 0x0, sizeof (struct epoll_event) );
+  ev.events = EPOLLIN;
+  ev.data.fd = *tfd;
+  if ( epoll_ctl(epfd, EPOLL_CTL_ADD, *tfd, &ev) == -1 ) return -1;
+
+  return 0;
+}
+
+static int displayfd_init (int epfd , struct wl_display * display )
+{
+  int wfd = wl_display_get_fd (display);
+  if (wfd<=0) return -1;
+
+  // ADD EPOLL
+  struct epoll_event ev;
+  memset (&ev , 0x0, sizeof (struct epoll_event) );
+  ev.events = EPOLLIN;
+  ev.data.fd = wfd;
+  if ( epoll_ctl(epfd, EPOLL_CTL_ADD, wfd, &ev) == -1 ) return -1;
+  return 0;
+}
+
+static int run_event_loop ( struct swaybg_state * state )
+{
+  int epfd = 0;
+  epfd = epoll_create1(EPOLL_CLOEXEC);
+  if(epfd == -1)
+  {
+    swaybg_log ( LOG_ERROR , "error create epoll");
+    return -1;
+  }
+
+  int tfd = -1;
+
+  if ( timer_init (epfd , &tfd ) != 0 )
+  {
+    swaybg_log ( LOG_ERROR , "error timer init");
+    return -1;
+  }
+
+  if ( timer_set ( tfd , 1000 ) != 0 )
+  {
+    swaybg_log ( LOG_ERROR , "error timer set");
+    return -1;
+  }
+
+  if ( displayfd_init (epfd , state->display ) != 0)
+  {
+    swaybg_log ( LOG_ERROR , "error display fd init");
+    return -1;
+  }
+
+  int err;
+  int idx;
+  struct epoll_event events[16];
+
+	state->run_display = true;
+	while ( state->run_display)
+  {
+    // block other threads before polling
+    while (wl_display_prepare_read(state->display) != 0)
+      wl_display_dispatch_pending(state->display);
+    wl_display_flush ( state->display );
+
+    err = epoll_wait(epfd, events, sizeof(events)/sizeof(struct epoll_event) , -1 );
+
+    if(err == -1)
+    {
+      if(errno == EINTR) { swaybg_log( LOG_DEBUG , "wait interrupted"); continue; }
+      else return -1;
+    }
+
+    if ( err == 0)
+    {
+      // epoll timeout
+    }
+    else for(idx = 0; idx < err; ++idx)
+    {
+      if(events[idx].data.fd == tfd)
+        timer_cb(tfd , events[idx].events , state );
+    }
+
+    // release other threads after pooling
+    wl_display_read_events(state->display);
+    wl_display_dispatch_pending(state->display);
+  }
+
+  return 0;
+}
+
+///////////////////////////////////////////
+
 int main(int argc, char **argv) {
 	swaybg_log_init(LOG_DEBUG);
 
@@ -530,10 +677,13 @@ int main(int argc, char **argv) {
 			&xdg_output_listener, output);
 	}
 
+#if 0
 	state.run_display = true;
 	while (wl_display_dispatch(state.display) != -1 && state.run_display) {
 		// This space intentionally left blank
 	}
+#endif
+  run_event_loop (&state);
 
 	struct swaybg_output *tmp_output;
 	wl_list_for_each_safe(output, tmp_output, &state.outputs, link) {
