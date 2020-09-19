@@ -107,6 +107,7 @@ sources = [
 	'background-image.c',
 	'cairo.c',
 	'log.c',
+	'setup.c',
   'color.c',
 	'main.c',
 	'pool-buffer.c',

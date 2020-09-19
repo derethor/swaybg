@@ -18,6 +18,7 @@
 # include <sys/timerfd.h>
 
 # include "swaybg.h"
+# include "setup.h"
 # include "color.h"
 
 #include "background-image.h"
@@ -181,18 +182,6 @@ static void xdg_output_handle_logical_size(void *data,
 	// Who cares
 }
 
-static void find_config(struct swaybg_output *output, const char *name) {
-	struct swaybg_output_config *config = NULL;
-	wl_list_for_each(config, &output->state->configs, link) {
-		if (strcmp(config->output, name) == 0) {
-			output->config = config;
-			return;
-		} else if (!output->config && strcmp(config->output, "*") == 0) {
-			output->config = config;
-		}
-	}
-}
-
 static void xdg_output_handle_name(void *data,
 		struct zxdg_output_v1 *xdg_output, const char *name) {
 	struct swaybg_output *output = data;
@@ -231,8 +220,7 @@ static void create_layer_surface(struct swaybg_output *output) {
 	assert(output->surface);
 
 	// Empty input region
-	struct wl_region *input_region =
-		wl_compositor_create_region(output->state->compositor);
+	struct wl_region *input_region = wl_compositor_create_region(output->state->compositor);
 	assert(input_region);
 	wl_surface_set_input_region(output->surface, input_region);
 	wl_region_destroy(input_region);
@@ -327,31 +315,6 @@ static const struct wl_registry_listener registry_listener = {
 	.global_remove = handle_global_remove,
 };
 
-static bool store_swaybg_output_config(struct swaybg_state *state,
-		struct swaybg_output_config *config) {
-	struct swaybg_output_config *oc = NULL;
-	wl_list_for_each(oc, &state->configs, link) {
-		if (strcmp(config->output, oc->output) == 0) {
-			// Merge on top
-			if (config->image) {
-				free(oc->image);
-				oc->image = config->image;
-				config->image = NULL;
-			}
-			if (config->color) {
-				oc->color = config->color;
-			}
-			if (config->mode != BACKGROUND_MODE_INVALID) {
-				oc->mode = config->mode;
-			}
-			return false;
-		}
-	}
-	// New config, just add it
-	wl_list_insert(&state->configs, &config->link);
-	return true;
-}
-
 static void parse_command_line(int argc, char **argv,
 		struct swaybg_state *state) {
 	static struct option long_options[] = {
@@ -386,6 +349,7 @@ static void parse_command_line(int argc, char **argv,
 
 	int c;
 	while (1) {
+
 		int option_index = 0;
 		c = getopt_long(argc, argv, "c:hi:p:m:o:v", long_options, &option_index);
 		if (c == -1) {
@@ -435,7 +399,9 @@ static void parse_command_line(int argc, char **argv,
 			exit(c == 'h' ? EXIT_SUCCESS : EXIT_FAILURE);
 		}
 	}
-	if (config && !store_swaybg_output_config(state, config)) {
+
+	if (config && !store_swaybg_output_config(state, config))
+  {
 		// Empty config or merged on top of an existing one
 		destroy_swaybg_output_config(config);
 	}
