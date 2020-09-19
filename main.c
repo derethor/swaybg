@@ -7,14 +7,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <wayland-client.h>
 
+# include <time.h>
+# include <glob.h>
 # include <errno.h>
 # include <stdio.h>
 # include <unistd.h>
 # include <memory.h>
 # include <sys/epoll.h>
 # include <sys/timerfd.h>
+
+# include "swaybg.h"
+# include "color.h"
 
 #include "background-image.h"
 #include "cairo.h"
@@ -23,81 +27,35 @@
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
 
-static uint32_t parse_color(const char *color) {
-	if (color[0] == '#') {
-		++color;
-	}
+# define LIST_GLOB_FLAGS GLOB_NOSORT
 
-	int len = strlen(color);
-	if (len != 6 && len != 8) {
-		swaybg_log(LOG_DEBUG, "Invalid color %s, defaulting to 0xFFFFFFFF",
-				color);
-		return 0xFFFFFFFF;
-	}
-	uint32_t res = (uint32_t)strtoul(color, NULL, 16);
-	if (strlen(color) == 6) {
-		res = (res << 8) | 0xFF;
-	}
-	return res;
+void list_files (const char * path , struct swaybg_state * state )
+{
+
+  glob_t  globlist;
+  int     c;
+
+  if (!path) return; // ERROR
+  if (!state) return; // ERROR
+
+	if (glob( path, LIST_GLOB_FLAGS , NULL, &globlist) == GLOB_NOSPACE || glob( path, GLOB_PERIOD, NULL, &globlist) == GLOB_NOMATCH)
+		return ; // (FAILURE);
+
+	if (glob( path, LIST_GLOB_FLAGS , NULL, &globlist) == GLOB_ABORTED)
+		return ; // (ERROR);
+
+  c = 0;
+
+	while (globlist.gl_pathv[c]) c ++;
+
+
+	uint32_t value = (( state->seed * 1103515245) + 12345) & 0x7fffffff;
+	state->seed = value;
+	const uint32_t e =	(uint32_t) ((  ((float ) (value) ) / 2147483646.0f ) * ( (float) c ));
+
+	printf("%s\n", globlist.gl_pathv[e]);
 }
 
-struct swaybg_state {
-	struct wl_display *display;
-	struct wl_compositor *compositor;
-	struct wl_shm *shm;
-	struct zwlr_layer_shell_v1 *layer_shell;
-	struct zxdg_output_manager_v1 *xdg_output_manager;
-	struct wl_list configs;  // struct swaybg_output_config::link
-	struct wl_list outputs;  // struct swaybg_output::link
-	bool run_display;
-};
-
-struct swaybg_output_config {
-	char *output;
-	cairo_surface_t *image;
-	enum background_mode mode;
-	uint32_t color;
-	struct wl_list link;
-};
-
-struct swaybg_output {
-	uint32_t wl_name;
-	struct wl_output *wl_output;
-	struct zxdg_output_v1 *xdg_output;
-	char *name;
-	char *identifier;
-
-	struct swaybg_state *state;
-	struct swaybg_output_config *config;
-
-	struct wl_surface *surface;
-	struct zwlr_layer_surface_v1 *layer_surface;
-	struct pool_buffer buffers[2];
-	struct pool_buffer *current_buffer;
-
-	uint32_t width, height;
-	int32_t scale;
-
-	struct wl_list link;
-};
-
-bool is_valid_color(const char *color) {
-	int len = strlen(color);
-	if (len != 7 || color[0] != '#') {
-		swaybg_log(LOG_ERROR, "%s is not a valid color for swaybg. "
-				"Color should be specified as #rrggbb (no alpha).", color);
-		return false;
-	}
-
-	int i;
-	for (i = 1; i < len; ++i) {
-		if (!isxdigit(color[i])) {
-			return false;
-		}
-	}
-
-	return true;
-}
 
 static void render_frame(struct swaybg_output *output) {
 	int buffer_width = output->width * output->scale,
@@ -400,6 +358,7 @@ static void parse_command_line(int argc, char **argv,
 		{"color", required_argument, NULL, 'c'},
 		{"help", no_argument, NULL, 'h'},
 		{"image", required_argument, NULL, 'i'},
+		{"path", required_argument, NULL, 'p'},
 		{"mode", required_argument, NULL, 'm'},
 		{"output", required_argument, NULL, 'o'},
 		{"version", no_argument, NULL, 'v'},
@@ -412,6 +371,7 @@ static void parse_command_line(int argc, char **argv,
 		"  -c, --color            Set the background color.\n"
 		"  -h, --help             Show help message and quit.\n"
 		"  -i, --image            Set the image to display.\n"
+		"  -p, --path             Set the path of images to display.\n"
 		"  -m, --mode             Set the mode to use for the image.\n"
 		"  -o, --output           Set the output to operate on or * for all.\n"
 		"  -v, --version          Show the version number and quit.\n"
@@ -427,7 +387,7 @@ static void parse_command_line(int argc, char **argv,
 	int c;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "c:hi:m:o:v", long_options, &option_index);
+		c = getopt_long(argc, argv, "c:hi:p:m:o:v", long_options, &option_index);
 		if (c == -1) {
 			break;
 		}
@@ -445,6 +405,10 @@ static void parse_command_line(int argc, char **argv,
 			if (!config->image) {
 				swaybg_log(LOG_ERROR, "Failed to load image: %s", optarg);
 			}
+			break;
+		case 'p':  // path
+			state->seed = time(NULL) % 0x7f ;
+			list_files (optarg , state);
 			break;
 		case 'm':  // mode
 			config->mode = parse_background_mode(optarg);
