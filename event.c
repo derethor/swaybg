@@ -42,7 +42,7 @@ int run_event_loop ( struct swaybg_state * state )
     return -1;
   }
 
-  if ( timer_set ( tfd , 1000 ) != 0 )
+  if ( timer_set ( tfd , 10000 ) != 0 )
   {
     swaybg_log ( LOG_ERROR , "error timer set");
     return -1;
