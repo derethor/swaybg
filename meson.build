@@ -113,6 +113,7 @@ sources = [
   'registry.c',
   'path.c',
   'timer.c',
+  'event.c',
 	'main.c',
 	'pool-buffer.c',
 ]
