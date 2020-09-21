@@ -17,13 +17,20 @@ static int displayfd_init (int epfd , struct wl_display * display )
   return 0;
 }
 
+#if 0
+	state.run_display = true;
+	while (wl_display_dispatch(state.display) != -1 && state.run_display) {
+		// This space intentionally left blank
+	}
+#endif
+
 int run_event_loop ( struct swaybg_state * state )
 {
   int epfd = 0;
   epfd = epoll_create1(EPOLL_CLOEXEC);
   if(epfd == -1)
   {
-    swaybg_log ( LOG_ERROR , "error create epoll");
+    swaybg_log ( LOG_ERROR , "error creating epoll");
     return -1;
   }
 
@@ -84,3 +91,4 @@ int run_event_loop ( struct swaybg_state * state )
 
   return 0;
 }
+

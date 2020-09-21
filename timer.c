@@ -1,29 +1,35 @@
+# include <assert.h>
 # include <sys/epoll.h>
 # include <sys/timerfd.h>
 # include "swaybg.h"
+# include "log.h"
 # include "output.h"
+# include "setup.h"
+# include "path.h"
 
 void timer_cb(int tfd , int revents , struct swaybg_state * state )
 {
   uint64_t count = 0;
   ssize_t err = 0;
 
+  assert (state!=NULL);
+
   err = read(tfd, &count, sizeof(uint64_t));
-  if(err != sizeof(uint64_t)) return;
+  if(err != sizeof(uint64_t))
+  {
+    swaybg_log ( LOG_ERROR , "error reading timer events");
+    return;
+  }
 
   //do timeout
-  if (!state) return;
+
   struct swaybg_output *output = NULL;
   struct swaybg_output *tmp_output = NULL;
+
   wl_list_for_each_safe(output, tmp_output, &(state->outputs), link)
   {
-    if (output && output->config && output->config->color)
-    {
-      output->config->color = (output->config->color) + 0x1100;
-      swaybg_log ( LOG_ERROR , "color %x\n" , output->config->color );
-      swaybg_log ( LOG_ERROR , "name %s\n" , output->name );
-      render_frame(output);
-    }
+    if (!output) continue;
+    if (setup_next_image ( state, output->config) ) render_frame(output);
   }
 }
 

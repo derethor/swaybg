@@ -1,6 +1,28 @@
 # include <assert.h>
 # include "swaybg.h"
+# include "log.h"
 # include "output.h"
+# include "path.h"
+
+bool setup_next_image ( struct swaybg_state *state, struct swaybg_output_config *config)
+{
+  assert (state != NULL);
+
+  if ( config == NULL ) return false;
+  if ( config->path == NULL ) return false;
+
+  char * imagename = next_image (config->path, state );
+  if (imagename)
+  {
+    free(config->image);
+    config->image = load_background_image(imagename);
+    swaybg_log ( LOG_DEBUG , "new image: %s" , imagename );
+    free (imagename);
+    return true;
+  }
+
+  return false;
+}
 
 bool store_swaybg_output_config(struct swaybg_state *state, struct swaybg_output_config *config)
 {
@@ -35,6 +57,7 @@ void destroy_swaybg_output_config(struct swaybg_output_config *config)
 	if (!config) return;
 
 	wl_list_remove(&config->link);
+	free(config->path);
 	free(config->output);
 	free(config);
 }

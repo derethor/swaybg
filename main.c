@@ -30,8 +30,9 @@
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
 
-static void parse_command_line(int argc, char **argv,
-		struct swaybg_state *state) {
+static void parse_command_line(int argc, char **argv, struct swaybg_state *state)
+{
+
 	static struct option long_options[] = {
 		{"color", required_argument, NULL, 'c'},
 		{"help", no_argument, NULL, 'h'},
@@ -67,12 +68,13 @@ static void parse_command_line(int argc, char **argv,
 
 		int option_index = 0;
 		c = getopt_long(argc, argv, "c:hi:p:m:o:v", long_options, &option_index);
-		if (c == -1) {
-			break;
-		}
+
+		if (c == -1) break;
+
 		switch (c) {
 		case 'c':  // color
-			if (!is_valid_color(optarg)) {
+			if (!is_valid_color(optarg))
+      {
 				swaybg_log(LOG_ERROR, "Invalid color: %s", optarg);
 				continue;
 			}
@@ -81,22 +83,20 @@ static void parse_command_line(int argc, char **argv,
 		case 'i':  // image
 			free(config->image);
 			config->image = load_background_image(optarg);
-			if (!config->image) {
-				swaybg_log(LOG_ERROR, "Failed to load image: %s", optarg);
-			}
+			if (!config->image) swaybg_log(LOG_ERROR, "Failed to load image: %s", optarg);
 			break;
 		case 'p':  // path
+      config->path = strdup(optarg);
 			state->seed = time(NULL) % 0x7f ;
-			list_files (optarg , state);
+      setup_next_image (state, config);
 			break;
 		case 'm':  // mode
 			config->mode = parse_background_mode(optarg);
-			if (config->mode == BACKGROUND_MODE_INVALID) {
-				swaybg_log(LOG_ERROR, "Invalid mode: %s", optarg);
-			}
+			if (config->mode == BACKGROUND_MODE_INVALID) swaybg_log(LOG_ERROR, "Invalid mode: %s", optarg);
 			break;
 		case 'o':  // output
-			if (config && !store_swaybg_output_config(state, config)) {
+			if (config && !store_swaybg_output_config(state, config))
+      {
 				// Empty config or merged on top of an existing one
 				destroy_swaybg_output_config(config);
 			}
@@ -122,15 +122,19 @@ static void parse_command_line(int argc, char **argv,
 	}
 
 	// Check for invalid options
-	if (optind < argc) {
+	if (optind < argc)
+  {
 		config = NULL;
 		struct swaybg_output_config *tmp = NULL;
-		wl_list_for_each_safe(config, tmp, &state->configs, link) {
+		wl_list_for_each_safe(config, tmp, &state->configs, link)
+    {
 			destroy_swaybg_output_config(config);
 		}
 		// continue into empty list
 	}
-	if (wl_list_empty(&state->configs)) {
+
+	if (wl_list_empty(&(state->configs)))
+  {
 		fprintf(stderr, "%s", usage);
 		exit(EXIT_FAILURE);
 	}
@@ -138,10 +142,14 @@ static void parse_command_line(int argc, char **argv,
 	// Set default mode and remove empties
 	config = NULL;
 	struct swaybg_output_config *tmp = NULL;
-	wl_list_for_each_safe(config, tmp, &state->configs, link) {
-		if (!config->image && !config->color) {
+	wl_list_for_each_safe(config, tmp, &(state->configs), link)
+  {
+		if (!config->image && !config->color)
+    {
 			destroy_swaybg_output_config(config);
-		} else if (config->mode == BACKGROUND_MODE_INVALID) {
+		}
+    else if (config->mode == BACKGROUND_MODE_INVALID)
+    {
 			config->mode = config->image
 				? BACKGROUND_MODE_STRETCH
 				: BACKGROUND_MODE_SOLID_COLOR;
@@ -149,9 +157,9 @@ static void parse_command_line(int argc, char **argv,
 	}
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	swaybg_log_init(LOG_DEBUG);
-
 	struct swaybg_state state = {0};
 	wl_list_init(&state.configs);
 	wl_list_init(&state.outputs);
@@ -169,12 +177,6 @@ int main(int argc, char **argv) {
   struct wl_registry * registry = setup_registry ( &state) ;
   if (!registry) return 1;
 
-#if 0
-	state.run_display = true;
-	while (wl_display_dispatch(state.display) != -1 && state.run_display) {
-		// This space intentionally left blank
-	}
-#endif
   run_event_loop (&state);
 
   destroy_all_swaybg_output (&state);

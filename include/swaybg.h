@@ -18,8 +18,10 @@ struct swaybg_state
 	bool run_display;
 };
 
-struct swaybg_output_config {
+struct swaybg_output_config
+{
 	char *output;
+  char *path;
 	cairo_surface_t *image;
 	enum background_mode mode;
 	uint32_t color;
