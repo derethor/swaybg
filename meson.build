@@ -111,6 +111,7 @@ sources = [
 	'setup.c',
 	'output.c',
   'registry.c',
+  'path.c',
 	'main.c',
 	'pool-buffer.c',
 ]
