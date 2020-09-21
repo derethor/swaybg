@@ -5,7 +5,7 @@ project(
 	license: 'MIT',
 	meson_version: '>=0.48.0',
 	default_options: [
-		'c_std=c11',
+		'c_std=gnu11',
 		'warning_level=2',
 		'werror=true',
 	],
@@ -107,8 +107,10 @@ sources = [
 	'background-image.c',
 	'cairo.c',
 	'log.c',
-	'setup.c',
   'color.c',
+	'setup.c',
+	'output.c',
+  'registry.c',
 	'main.c',
 	'pool-buffer.c',
 ]

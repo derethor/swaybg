@@ -28,6 +28,15 @@ bool store_swaybg_output_config(struct swaybg_state *state, struct swaybg_output
 	return true;
 }
 
+void destroy_swaybg_output_config(struct swaybg_output_config *config)
+{
+	if (!config) return;
+
+	wl_list_remove(&config->link);
+	free(config->output);
+	free(config);
+}
+
 void find_config(struct swaybg_output *output, const char *name)
 {
 	struct swaybg_output_config *config = NULL;
