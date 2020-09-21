@@ -345,16 +345,8 @@ int main(int argc, char **argv) {
 #endif
   run_event_loop (&state);
 
-	struct swaybg_output *output;
-	struct swaybg_output *tmp_output;
-	wl_list_for_each_safe(output, tmp_output, &state.outputs, link) {
-		destroy_swaybg_output(output);
-	}
-
-	struct swaybg_output_config *config = NULL, *tmp_config = NULL;
-	wl_list_for_each_safe(config, tmp_config, &state.configs, link) {
-		destroy_swaybg_output_config(config);
-	}
+  destroy_all_swaybg_output (&state);
+  destroy_all_swaybg_output_config (&state);
 
 	return 0;
 }

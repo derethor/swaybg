@@ -1,4 +1,6 @@
+# include <assert.h>
 # include "swaybg.h"
+# include "output.h"
 
 bool store_swaybg_output_config(struct swaybg_state *state, struct swaybg_output_config *config)
 {
@@ -35,6 +37,14 @@ void destroy_swaybg_output_config(struct swaybg_output_config *config)
 	wl_list_remove(&config->link);
 	free(config->output);
 	free(config);
+}
+
+void destroy_all_swaybg_output_config (struct swaybg_state *state)
+{
+	struct swaybg_output_config *config = NULL, *tmp_config = NULL;
+	wl_list_for_each_safe(config, tmp_config, &(state->configs), link) {
+		destroy_swaybg_output_config(config);
+	}
 }
 
 void find_config(struct swaybg_output *output, const char *name)

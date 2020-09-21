@@ -57,3 +57,16 @@ void destroy_swaybg_output(struct swaybg_output *output)
 	free(output);
 }
 
+void destroy_all_swaybg_output (struct swaybg_state *state)
+{
+  assert ( state!=NULL);
+
+	struct swaybg_output *output;
+	struct swaybg_output *tmp_output;
+
+	wl_list_for_each_safe(output, tmp_output, &(state->outputs), link)
+  {
+		destroy_swaybg_output(output);
+	}
+}
+

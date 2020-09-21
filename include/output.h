@@ -3,7 +3,8 @@
 
 # include "swaybg.h"
 
-void render_frame(struct swaybg_output *output);
-void destroy_swaybg_output(struct swaybg_output *output);
+extern void render_frame(struct swaybg_output *output);
+extern void destroy_swaybg_output(struct swaybg_output *output);
+extern void destroy_all_swaybg_output (struct swaybg_state *state);
 
 # endif
