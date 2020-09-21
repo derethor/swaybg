@@ -140,13 +140,15 @@ static void xdg_output_handle_description(void *data, struct zxdg_output_v1 *xdg
 static void xdg_output_handle_done(void *data, struct zxdg_output_v1 *xdg_output)
 {
 	struct swaybg_output *output = data;
-	if (!output->config) {
-		swaybg_log(LOG_DEBUG, "Could not find config for output %s (%s)",
-				output->name, output->identifier);
+
+	if (!output->config)
+  {
+		swaybg_log(LOG_DEBUG, "Could not find config for output %s (%s)", output->name, output->identifier);
 		destroy_swaybg_output(output);
-	} else if (!output->layer_surface) {
-		swaybg_log(LOG_DEBUG, "Found config %s for output %s (%s)",
-				output->config->output, output->name, output->identifier);
+	}
+  else if (!output->layer_surface)
+  {
+		swaybg_log(LOG_DEBUG, "Found config %s for output %s (%s)", output->config->output, output->name, output->identifier);
 		create_layer_surface(output);
 	}
 }

@@ -159,7 +159,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
 
 int main(int argc, char **argv)
 {
-	swaybg_log_init(LOG_DEBUG);
+	swaybg_log_init(LOG_ERROR);
 	struct swaybg_state state = {0};
 	wl_list_init(&state.configs);
 	wl_list_init(&state.outputs);
