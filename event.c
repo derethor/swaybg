@@ -118,7 +118,7 @@ int run_event_loop ( struct swaybg_state * state )
     }
     else for(idx = 0; idx < err; ++idx)
     {
-      check_timer_event ( &events[idx] , state ) ;
+      if ( check_timer_event ( &events[idx] , state ) != 0 ) continue;
     }
 
     // release other threads after pooling
