@@ -15,6 +15,7 @@ struct swaybg_state
 	struct wl_list configs;  // struct swaybg_output_config::link
 	struct wl_list outputs;  // struct swaybg_output::link
   uint32_t seed;
+  int epfd; // epoll file descriptor
 	bool run_display;
 };
 

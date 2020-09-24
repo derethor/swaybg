@@ -1,3 +1,4 @@
+# include <assert.h>
 # include <sys/epoll.h>
 # include "swaybg.h"
 # include "log.h"
@@ -26,9 +27,11 @@ static int displayfd_init (int epfd , struct wl_display * display )
 
 int run_event_loop ( struct swaybg_state * state )
 {
-  int epfd = 0;
-  epfd = epoll_create1(EPOLL_CLOEXEC);
-  if(epfd == -1)
+  assert (state != NULL);
+
+  // todo: delete previus fd
+  state->epfd = epoll_create1(EPOLL_CLOEXEC);
+  if(state->epfd == -1)
   {
     swaybg_log ( LOG_ERROR , "error creating epoll");
     return -1;
@@ -36,7 +39,7 @@ int run_event_loop ( struct swaybg_state * state )
 
   int tfd = -1;
 
-  if ( timer_init (epfd , &tfd ) != 0 )
+  if ( timer_init ( state->epfd , &tfd ) != 0 )
   {
     swaybg_log ( LOG_ERROR , "error timer init");
     return -1;
@@ -48,7 +51,7 @@ int run_event_loop ( struct swaybg_state * state )
     return -1;
   }
 
-  if ( displayfd_init (epfd , state->display ) != 0)
+  if ( displayfd_init (state->epfd , state->display ) != 0)
   {
     swaybg_log ( LOG_ERROR , "error display fd init");
     return -1;
@@ -66,7 +69,7 @@ int run_event_loop ( struct swaybg_state * state )
       wl_display_dispatch_pending(state->display);
     wl_display_flush ( state->display );
 
-    err = epoll_wait(epfd, events, sizeof(events)/sizeof(struct epoll_event) , -1 );
+    err = epoll_wait(state->epfd, events, sizeof(events)/sizeof(struct epoll_event) , -1 );
 
     if(err == -1)
     {
