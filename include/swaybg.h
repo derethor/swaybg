@@ -14,7 +14,6 @@ struct swaybg_state
 	struct zxdg_output_manager_v1 *xdg_output_manager;
 	struct wl_list configs;  // struct swaybg_output_config::link
 	struct wl_list outputs;  // struct swaybg_output::link
-  uint32_t seed;
   int epfd; // epoll file descriptor
 	bool run_display;
 };
@@ -23,6 +22,7 @@ struct swaybg_output_config
 {
 	char *output;
   char *path;
+  uint32_t seed;
 	cairo_surface_t *image;
 	enum background_mode mode;
 	uint32_t color;

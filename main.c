@@ -87,8 +87,8 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
 			break;
 		case 'p':  // path
       config->path = strdup(optarg);
-			state->seed = time(NULL) % 0x7f ;
-      setup_next_image (state, config);
+	    config->seed = time(NULL) % 0x7f ;
+      setup_next_image (config);
 			break;
 		case 'm':  // mode
 			config->mode = parse_background_mode(optarg);

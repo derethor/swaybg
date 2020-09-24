@@ -4,14 +4,14 @@
 # include "output.h"
 # include "path.h"
 
-bool setup_next_image ( struct swaybg_state *state, struct swaybg_output_config *config)
+bool setup_next_image (struct swaybg_output_config *config)
 {
-  assert (state != NULL);
+  assert (config != NULL);
 
   if ( config == NULL ) return false;
   if ( config->path == NULL ) return false;
 
-  char * imagename = next_image (config->path, state );
+  char * imagename = next_image (config);
   if (imagename)
   {
     free(config->image);

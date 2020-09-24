@@ -14,6 +14,7 @@ void timer_cb(int revents , struct swaybg_output * output , struct swaybg_state 
 
   assert (state!=NULL);
   assert (output!=NULL);
+  assert (output->config!=NULL);
 
   err = read(output->tfd, &count, sizeof(uint64_t));
   if(err != sizeof(uint64_t))
@@ -23,7 +24,7 @@ void timer_cb(int revents , struct swaybg_output * output , struct swaybg_state 
   }
 
   //do timeout
-  if (setup_next_image ( state, output->config) ) render_frame(output);
+  if (setup_next_image (output->config) ) render_frame(output);
 }
 
 int timer_set ( int tfd , long ms )
