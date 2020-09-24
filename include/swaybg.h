@@ -48,6 +48,8 @@ struct swaybg_output
 	uint32_t width, height;
 	int32_t scale;
 
+  int tfd;  // timer fd
+
 	struct wl_list link;
 };
 

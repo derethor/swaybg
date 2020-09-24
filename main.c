@@ -177,7 +177,8 @@ int main(int argc, char **argv)
   struct wl_registry * registry = setup_registry ( &state) ;
   if (!registry) return 1;
 
-  run_event_loop (&state);
+  if ( setup_event_loop (&state) == 0 )
+    run_event_loop (&state);
 
   destroy_all_swaybg_output (&state);
   destroy_all_swaybg_output_config (&state);

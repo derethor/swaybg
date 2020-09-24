@@ -7,14 +7,15 @@
 # include "setup.h"
 # include "path.h"
 
-void timer_cb(int tfd , int revents , struct swaybg_state * state )
+void timer_cb(int revents , struct swaybg_output * output , struct swaybg_state * state )
 {
   uint64_t count = 0;
   ssize_t err = 0;
 
   assert (state!=NULL);
+  assert (output!=NULL);
 
-  err = read(tfd, &count, sizeof(uint64_t));
+  err = read(output->tfd, &count, sizeof(uint64_t));
   if(err != sizeof(uint64_t))
   {
     swaybg_log ( LOG_ERROR , "error reading timer events");
@@ -22,15 +23,7 @@ void timer_cb(int tfd , int revents , struct swaybg_state * state )
   }
 
   //do timeout
-
-  struct swaybg_output *output = NULL;
-  struct swaybg_output *tmp_output = NULL;
-
-  wl_list_for_each_safe(output, tmp_output, &(state->outputs), link)
-  {
-    if (!output) continue;
-    if (setup_next_image ( state, output->config) ) render_frame(output);
-  }
+  if (setup_next_image ( state, output->config) ) render_frame(output);
 }
 
 int timer_set ( int tfd , long ms )
