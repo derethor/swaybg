@@ -43,6 +43,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
 	struct swaybg_output_config *config = calloc(sizeof(struct swaybg_output_config), 1);
 	config->output = strdup("*");
 	config->mode = BACKGROUND_MODE_INVALID;
+  config->seconds = 5 * 60;
 	wl_list_init(&config->link); // init for safe removal
 
 	int c;
@@ -73,7 +74,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
       setup_next_image (config);
 			break;
 		case 's':  // seconds
-      config->seconds = 10;
+      config->seconds = 3;
 			break;
 		case 'm':  // mode
 			config->mode = parse_background_mode(optarg);

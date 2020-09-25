@@ -53,6 +53,8 @@ int setup_output_event (struct swaybg_output *output)
   assert (output->state != NULL );
   assert (output->config != NULL );
 
+  if (output->config->seconds <= 0) return 0;
+
   output->tfd = -1;
 
   if ( timer_init ( output->state->epfd , &(output->tfd) ) != 0 )
@@ -61,13 +63,13 @@ int setup_output_event (struct swaybg_output *output)
     return -1;
   }
 
-  if ( timer_set ( output->tfd , 10000 ) != 0 )
+  if ( timer_set ( output->tfd , output->config->seconds * 1000 ) != 0 )
   {
     swaybg_log ( LOG_ERROR , "error timer set");
     return -1;
   }
 
-  return 0;
+  return 1;
 }
 
 static int check_display_event ( const struct epoll_event * event , struct swaybg_state * state )
