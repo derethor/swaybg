@@ -7,9 +7,7 @@
 bool setup_next_image (struct swaybg_output_config *config)
 {
   assert (config != NULL);
-
-  if ( config == NULL ) return false;
-  if ( config->path == NULL ) return false;
+  assert (config->path != NULL);
 
   char * imagename = next_image (config);
   if (imagename)

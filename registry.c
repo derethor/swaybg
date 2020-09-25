@@ -1,17 +1,15 @@
 # include <assert.h>
 # include <stdint.h>
-
-#include <assert.h>
-#include <string.h>
 # include <wayland-client.h>
+
+# include "wlr-layer-shell-unstable-v1-client-protocol.h"
+# include "xdg-output-unstable-v1-client-protocol.h"
 
 # include "swaybg.h"
 # include "log.h"
 # include "setup.h"
 # include "output.h"
-
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
-#include "xdg-output-unstable-v1-client-protocol.h"
+# include "event.h"
 
 static void output_geometry(void *data, struct wl_output *output, int32_t x,
 		int32_t y, int32_t width_mm, int32_t height_mm, int32_t subpixel,
@@ -77,6 +75,8 @@ static const struct zwlr_layer_surface_v1_listener layer_surface_listener = {
 
 static void create_layer_surface(struct swaybg_output *output)
 {
+	assert(output);
+
 	output->surface = wl_compositor_create_surface(output->state->compositor);
 	assert(output->surface);
 
@@ -111,9 +111,7 @@ static void xdg_output_handle_name(void *data, struct zxdg_output_v1 *xdg_output
 
 	// If description was sent first, the config may already be populated. If
 	// there is an identifier config set, keep it.
-	if (!output->config || strcmp(output->config->output, "*") == 0) {
-		find_config(output, name);
-	}
+	if (!output->config || strcmp(output->config->output, "*") == 0) find_config(output, name);
 }
 
 static void xdg_output_handle_description(void *data, struct zxdg_output_v1 *xdg_output, const char *description)
@@ -150,6 +148,7 @@ static void xdg_output_handle_done(void *data, struct zxdg_output_v1 *xdg_output
   {
 		swaybg_log(LOG_DEBUG, "Found config %s for output %s (%s)", output->config->output, output->name, output->identifier);
 		create_layer_surface(output);
+    setup_output_event (output);
 	}
 }
 

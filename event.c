@@ -44,36 +44,50 @@ int setup_event_loop (struct swaybg_state * state)
     return -1;
   }
 
-  // connect all timers
-	struct swaybg_output *output;
-	struct swaybg_output *tmp_output;
+  return 0;
+}
 
-	wl_list_for_each_safe(output, tmp_output, &(state->outputs), link)
+int setup_output_event (struct swaybg_output *output)
+{
+  assert (output);
+  assert (output->state != NULL );
+  assert (output->config != NULL );
+
+  output->tfd = -1;
+
+  if ( timer_init ( output->state->epfd , &(output->tfd) ) != 0 )
   {
-    output->tfd = -1;
+    swaybg_log ( LOG_ERROR , "error timer init");
+    return -1;
+  }
 
-    if ( timer_init ( state->epfd , &(output->tfd) ) != 0 )
-    {
-      swaybg_log ( LOG_ERROR , "error timer init");
-      return -1;
-    }
-
-    if ( timer_set ( output->tfd , 10000 ) != 0 )
-    {
-      swaybg_log ( LOG_ERROR , "error timer set");
-      return -1;
-    }
+  if ( timer_set ( output->tfd , 10000 ) != 0 )
+  {
+    swaybg_log ( LOG_ERROR , "error timer set");
+    return -1;
   }
 
   return 0;
 }
 
+static int check_display_event ( const struct epoll_event * event , struct swaybg_state * state )
+{
+  assert (event != NULL);
+  assert (state != NULL);
+  assert (state->display != NULL);
+
+  int wfd = wl_display_get_fd (state->display);
+  if (event->data.fd == wfd) return 1;
+  return 0;
+}
+
 static int check_timer_event ( const struct epoll_event * event , struct swaybg_state * state )
 {
-
 	struct swaybg_output *output;
 	struct swaybg_output *tmp_output;
+
   assert (event != NULL);
+  assert (state != NULL);
 
 	wl_list_for_each_safe(output, tmp_output, &(state->outputs), link)
   {
@@ -119,6 +133,7 @@ int run_event_loop ( struct swaybg_state * state )
     else for(idx = 0; idx < err; ++idx)
     {
       if ( check_timer_event ( &events[idx] , state ) != 0 ) continue;
+      if ( check_display_event ( &events[idx] , state ) != 0 ) continue;
     }
 
     // release other threads after pooling

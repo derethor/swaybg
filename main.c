@@ -1,34 +1,14 @@
-#define _POSIX_C_SOURCE 200809L
-#include <assert.h>
-#include <ctype.h>
-#include <getopt.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
+# define _POSIX_C_SOURCE 200809L
 
-# include <time.h>
-# include <errno.h>
-# include <stdio.h>
-# include <unistd.h>
-# include <memory.h>
-# include <sys/epoll.h>
-
+# include <getopt.h>
 # include "swaybg.h"
+# include "log.h"
 # include "setup.h"
 # include "color.h"
 # include "output.h"
 # include "registry.h"
 # include "path.h"
 # include "event.h"
-
-#include "background-image.h"
-#include "cairo.h"
-#include "log.h"
-#include "pool-buffer.h"
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
-#include "xdg-output-unstable-v1-client-protocol.h"
 
 static void parse_command_line(int argc, char **argv, struct swaybg_state *state)
 {
@@ -38,6 +18,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
 		{"help", no_argument, NULL, 'h'},
 		{"image", required_argument, NULL, 'i'},
 		{"path", required_argument, NULL, 'p'},
+		{"seconds", required_argument, NULL, 's'},
 		{"mode", required_argument, NULL, 'm'},
 		{"output", required_argument, NULL, 'o'},
 		{"version", no_argument, NULL, 'v'},
@@ -51,6 +32,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
 		"  -h, --help             Show help message and quit.\n"
 		"  -i, --image            Set the image to display.\n"
 		"  -p, --path             Set the path of images to display.\n"
+		"  -s, --seconds          Set interval between each image.\n"
 		"  -m, --mode             Set the mode to use for the image.\n"
 		"  -o, --output           Set the output to operate on or * for all.\n"
 		"  -v, --version          Show the version number and quit.\n"
@@ -67,7 +49,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
 	while (1) {
 
 		int option_index = 0;
-		c = getopt_long(argc, argv, "c:hi:p:m:o:v", long_options, &option_index);
+		c = getopt_long(argc, argv, "c:hi:p:s:m:o:v", long_options, &option_index);
 
 		if (c == -1) break;
 
@@ -89,6 +71,9 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
       config->path = strdup(optarg);
 	    config->seed = time(NULL) % 0x7f ;
       setup_next_image (config);
+			break;
+		case 's':  // seconds
+      config->seconds = 10;
 			break;
 		case 'm':  // mode
 			config->mode = parse_background_mode(optarg);
