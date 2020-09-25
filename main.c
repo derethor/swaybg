@@ -74,7 +74,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
       setup_next_image (config);
 			break;
 		case 's':  // seconds
-      config->seconds = 3;
+      config->seconds = atoi(optarg);
 			break;
 		case 'm':  // mode
 			config->mode = parse_background_mode(optarg);
