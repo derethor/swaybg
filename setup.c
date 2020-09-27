@@ -12,7 +12,7 @@ bool setup_next_image(struct swaybg_output_config *config)
   char *imagename = next_image(config);
   if (imagename)
   {
-    free(config->image);
+    release_background_image(config->image);
     config->image = load_background_image(imagename);
     swaybg_log(LOG_DEBUG, "new image: %s", imagename);
     free(imagename);

@@ -69,6 +69,12 @@ cairo_surface_t *load_background_image(const char *path)
   return image;
 }
 
+void release_background_image(cairo_surface_t *image)
+{
+  if (image == NULL) return;
+  cairo_surface_destroy (image);
+}
+
 void render_background_image(cairo_t *cairo, cairo_surface_t *image,
                              enum background_mode mode, int buffer_width, int buffer_height)
 {
