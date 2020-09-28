@@ -45,7 +45,9 @@ cairo_surface_t *load_background_image(const char *path)
                err->message);
     return NULL;
   }
+
   image = gdk_cairo_image_surface_create_from_pixbuf(pixbuf);
+
   g_object_unref(pixbuf);
 #else
   image = cairo_image_surface_create_from_png(path);
@@ -71,8 +73,9 @@ cairo_surface_t *load_background_image(const char *path)
 
 void release_background_image(cairo_surface_t *image)
 {
-  if (image == NULL) return;
-  cairo_surface_destroy (image);
+  if (image == NULL)
+    return;
+  cairo_surface_destroy(image);
 }
 
 void render_background_image(cairo_t *cairo, cairo_surface_t *image,
