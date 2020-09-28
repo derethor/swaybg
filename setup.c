@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "state.h"
 #include "swaybg.h"
 #include "log.h"
 #include "output.h"

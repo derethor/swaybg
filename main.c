@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <getopt.h>
+#include "state.h"
 #include "swaybg.h"
 #include "log.h"
 #include "setup.h"

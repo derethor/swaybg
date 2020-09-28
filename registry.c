@@ -5,6 +5,7 @@
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
 
+#include "state.h"
 #include "swaybg.h"
 #include "log.h"
 #include "setup.h"
