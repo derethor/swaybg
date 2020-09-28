@@ -6,6 +6,7 @@
 #include "xdg-output-unstable-v1-client-protocol.h"
 
 #include "state.h"
+#include "output_config.h"
 #include "swaybg.h"
 #include "log.h"
 #include "setup.h"

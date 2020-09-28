@@ -2,7 +2,7 @@
 
 # include <glob.h>
 # include "log.h"
-# include "swaybg.h"
+# include "output_config.h"
 
 # define LIST_GLOB_FLAGS GLOB_NOSORT
 

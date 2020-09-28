@@ -4,6 +4,7 @@
 #include "log.h"
 #include "output.h"
 #include "path.h"
+#include "output_config.h"
 
 bool setup_next_image(struct swaybg_output_config *config)
 {
