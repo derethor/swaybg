@@ -2,7 +2,6 @@
 #include <sys/epoll.h>
 #include "state.h"
 #include "output_config.h"
-#include "swaybg.h"
 #include "log.h"
 #include "timer.h"
 

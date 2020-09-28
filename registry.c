@@ -7,7 +7,6 @@
 
 #include "state.h"
 #include "output_config.h"
-#include "swaybg.h"
 #include "log.h"
 #include "setup.h"
 #include "output.h"

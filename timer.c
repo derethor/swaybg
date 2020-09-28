@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <sys/epoll.h>
 #include <sys/timerfd.h>
-#include "swaybg.h"
 #include "output_config.h"
 #include "log.h"
 #include "output.h"
