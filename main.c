@@ -22,7 +22,8 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
       {"seconds", required_argument, NULL, 's'},
       {"mode", required_argument, NULL, 'm'},
       {"output", required_argument, NULL, 'o'},
-      {"version", no_argument, NULL, 'v'},
+      {"verbose", no_argument, NULL, 'v'},
+      {"version", no_argument, NULL, 'V'},
       {0, 0, 0, 0}};
 
   const char *usage =
@@ -34,7 +35,9 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
       "  -s, --seconds          Set interval between each image.\n"
       "  -m, --mode             Set the mode to use for the image.\n"
       "  -o, --output           Set the output to operate on or * for all.\n"
-      "  -v, --version          Show the version number and quit.\n"
+      "  -v, --verbose          Verbose output.\n"
+      "  -V, --version          Show the version number and quit.\n"
+
       "\n"
       "  -p, --path             Set the path of images to display.\n"
       "Background Modes:\n"
@@ -51,7 +54,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
   {
 
     int option_index = 0;
-    c = getopt_long(argc, argv, "c:hi:p:s:m:o:v", long_options, &option_index);
+    c = getopt_long(argc, argv, "c:hi:p:s:m:o:Vv", long_options, &option_index);
 
     if (c == -1)
       break;
@@ -96,7 +99,11 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
       config->mode = BACKGROUND_MODE_INVALID;
       wl_list_init(&config->link); // init for safe removal
       break;
-    case 'v': // version
+    case 'v': // verbose
+      swaybg_log_verbose(LOG_DEBUG);
+      swaybg_log(LOG_INFO,"verbose output");
+      break;
+    case 'V': // version
       fprintf(stdout, "swaybg version " SWAYBG_VERSION "\n");
       exit(EXIT_SUCCESS);
       break;
@@ -150,7 +157,7 @@ static void parse_command_line(int argc, char **argv, struct swaybg_state *state
 
 int main(int argc, char **argv)
 {
-  swaybg_log_init(LOG_ERROR);
+  swaybg_log_verbose(LOG_ERROR);
   struct swaybg_state state = {0};
   wl_list_init(&state.configs);
   wl_list_init(&state.outputs);

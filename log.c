@@ -17,7 +17,7 @@ static const char *verbosity_colors[] = {
     [LOG_DEBUG] = "\x1B[1;36m",
 };
 
-void swaybg_log_init(enum log_importance verbosity)
+void swaybg_log_verbose(enum log_importance verbosity)
 {
   if (verbosity < LOG_IMPORTANCE_LAST)
   {

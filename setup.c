@@ -15,7 +15,7 @@ bool setup_next_image(struct swaybg_output_config *config)
   {
     release_background_image(config->image);
     config->image = load_background_image(imagename);
-    swaybg_log(LOG_DEBUG, "new image: %s", imagename);
+    swaybg_log(LOG_INFO, "display %s", imagename);
     free(imagename);
     return true;
   }
