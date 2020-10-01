@@ -76,18 +76,6 @@ int setup_output_event(struct swaybg_output *output)
   return 1;
 }
 
-static int check_display_event(const struct epoll_event *event, struct swaybg_state *state)
-{
-  assert(event != NULL);
-  assert(state != NULL);
-  assert(state->display != NULL);
-
-  int wfd = wl_display_get_fd(state->display);
-  if (event->data.fd == wfd)
-    return 1;
-  return 0;
-}
-
 static int check_timer_event(const struct epoll_event *event, struct swaybg_state *state)
 {
   struct swaybg_output *output;
@@ -129,6 +117,7 @@ int run_event_loop(struct swaybg_state *state)
 
     if (err == -1)
     {
+      wl_display_cancel_read (state->display);
       if (errno == EINTR)
       {
         swaybg_log(LOG_DEBUG, "wait interrupted");
@@ -137,6 +126,11 @@ int run_event_loop(struct swaybg_state *state)
       else
         return -1;
     }
+
+    // release other threads after pooling
+    assert ( wl_display_read_events(state->display) == 0 );
+    wl_display_dispatch_pending(state->display);
+    wl_display_flush(state->display);
 
     if (err == 0)
     {
@@ -147,13 +141,8 @@ int run_event_loop(struct swaybg_state *state)
       {
         if (check_timer_event(&events[idx], state) != 0)
           continue;
-        if (check_display_event(&events[idx], state) != 0)
-          continue;
       }
 
-    // release other threads after pooling
-    wl_display_read_events(state->display);
-    wl_display_dispatch_pending(state->display);
   }
 
   return 0;
