@@ -13,10 +13,15 @@ bool setup_next_image(struct swaybg_output_config *config)
   char *imagename = next_image(config);
   if (imagename)
   {
+    cairo_surface_t * image = load_background_image(imagename);
+    if (!image) return false;
+
     release_background_image(config->image);
-    config->image = load_background_image(imagename);
+    config->image = image;
+
     swaybg_log(LOG_INFO, "display %s", imagename);
     free(imagename);
+
     return true;
   }
 
